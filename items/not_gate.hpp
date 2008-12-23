@@ -2,10 +2,11 @@
 #define NOT_GATE
 
 #include "item.hpp"
+#include <iostream>
 
 struct not_gate : item {
-    bool operator()() {
-        value = ~input.front()->value;
+    bool eval() {
+        value = !input.front()->value;
         return value;
     }
 };

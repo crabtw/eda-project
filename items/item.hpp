@@ -13,7 +13,7 @@ typedef std::list<item_ptr> item_list;
 struct item {
     item(): value(-1) { }
 
-    virtual bool operator()() = 0;
+    virtual bool eval() = 0;
 
     std::string id;
     int value;

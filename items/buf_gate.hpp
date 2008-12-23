@@ -4,7 +4,7 @@
 #include "item.hpp"
 
 struct buf_gate : item {
-    bool operator()() {
+    bool eval() {
         value = input.front()->value;
         return value;
     }

@@ -5,7 +5,6 @@
 #include <fstream>
 #include <iostream>
 #include <queue>
-#include <string>
 #include <typeinfo>
 
 #include <cstdlib>
@@ -143,18 +142,20 @@ item_list static_analyze(item_list *candidates, item_ptr &item) {
     return exit;
 }
 
-item_list dynamic_analyze(
-    item_list::iterator begin, item_list::iterator end,
-    item_list *useless, item_ptr &item
-) {
+item_list dynamic_analyze(item_list *candidates, item_ptr &item) {
     item_list exit;
 
     for(item_list::iterator in = item->input.begin();
         in != item->input.end();
         ++in) {
 
-        if(find(begin, end, *in) != end) {
-            insert_unique(useless, &exit, *in);
+        if(
+            find(
+                candidates->begin(), candidates->end(), *in
+            ) != candidates->end()
+        ) {
+            candidates->remove(*in);
+            exit.push_back(*in);
         }
     }
 
@@ -181,9 +182,8 @@ item_list brute_force(item_list *candidates, item_ptr &item) {
 }
 
 void analyze(item_map &out, value_map &obs,
-             item_list &actions, item_list &final) {
+             item_list &candidates, item_list &final) {
     item_map diff;
-    item_list candidates, useless;
 
     // reduce candidates
     for(item_map::iterator item = out.begin();
@@ -194,7 +194,8 @@ void analyze(item_map &out, value_map &obs,
             diff.insert(*item);
         }
     }
-    //diff = out; // brute-force
+    // brute-force
+    //diff = out;
 
     // static
     for(item_map::iterator item = diff.begin();
@@ -203,8 +204,10 @@ void analyze(item_map &out, value_map &obs,
 
         bft(
             item->second,
-            bind(&static_analyze, &candidates, _1) // reduce candidates
-            //bind(&brute_force, &candidates, _1) // brute-force
+            // reduce candidates
+            bind(&static_analyze, &candidates, _1)
+            // brute-force
+            //bind(&brute_force, &candidates, _1)
         );
     }
 
@@ -212,11 +215,6 @@ void analyze(item_map &out, value_map &obs,
     for(item_list::iterator c = candidates.begin();
         c != candidates.end();
         ++c) {
-
-        if(find(useless.begin(), useless.end(), *c) != useless.end()) {
-            continue;
-        }
-        actions.push_back(*c);
 
         item_ptr &item = *c;
         item_ptr parent = item;
@@ -234,13 +232,7 @@ void analyze(item_map &out, value_map &obs,
 
             if(o->second->value != obs[o->first]) {
                 // reduce candidates
-                bft(
-                    item,
-                    bind(
-                        dynamic_analyze,
-                        c, candidates.end(), &useless, _1
-                    )
-                );
+                bft(item, bind(dynamic_analyze, &candidates, _1));
                 goto next_item;
             }
         }

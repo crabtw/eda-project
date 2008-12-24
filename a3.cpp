@@ -44,6 +44,7 @@ void print_items(item_map &items) {
     }
 }
 
+// breadth first traversal
 template <class Function>
 void bft(item_ptr &root, Function f) {
     queue<item_ptr> q;
@@ -68,8 +69,8 @@ item_list eval(item_ptr &item) {
     return item->output;
 }
 
-void insert_candidates(item_list *candidates, item_list *exit,
-                       item_ptr &item) {
+void insert_unique(item_list *candidates, item_list *exit,
+                   item_ptr &item) {
     if(
         find(candidates->begin(), candidates->end(), item)
             == candidates->end()
@@ -80,6 +81,7 @@ void insert_candidates(item_list *candidates, item_list *exit,
 }
 
 item_list static_analyze(item_list *candidates, item_ptr &item) {
+    // input, output, wire
     if(typeid(*item) == typeid(input_port) ||
        typeid(*item) == typeid(output_port) ||
        typeid(*item) == typeid(wire_item)) {
@@ -89,29 +91,18 @@ item_list static_analyze(item_list *candidates, item_ptr &item) {
 
     item_list exit;
 
-    // xor
-    if(typeid(*item) == typeid(xor_gate)) {
-        for_each(
-            item->input.begin(), item->input.end(),
-            bind(&insert_candidates, candidates, &exit, _1)
-        );
-
-        return exit;
-    }
-
     // not, buf
     if(
         typeid(*item) == typeid(not_gate) ||
         typeid(*item) == typeid(buf_gate)
     ) {
-        item_ptr &p = item->input.front();
-        insert_candidates(candidates, &exit, p);
+        insert_unique(candidates, &exit, item->input.front());
         return exit;
     }
 
     item_list tmp;
 
-    // and, nand, or, nor
+    // and=0, nand=1, or=1, nor=0, others
     if(
         (typeid(*item) == typeid(and_gate) && item->value == 0) ||
         (typeid(*item) == typeid(nand_gate) && item->value == 1)
@@ -136,31 +127,54 @@ item_list static_analyze(item_list *candidates, item_ptr &item) {
                 tmp.push_back(*in);
             }
         }
+    } else {
+        for_each(
+            item->input.begin(), item->input.end(),
+            bind(&insert_unique, candidates, &exit, _1)
+        );
+
+        return exit;
     }
 
     if(tmp.size() == 1) {
-        insert_candidates(candidates, &exit, tmp.front());
+        insert_unique(candidates, &exit, tmp.front());
     }
 
     return exit;
 }
 
-item_list dynamic_analyze(item_list *candidates, item_list *useless,
-                          item_ptr &item) {
+item_list dynamic_analyze(
+    item_list::iterator begin, item_list::iterator end,
+    item_list *useless, item_ptr &item
+) {
     item_list exit;
 
     for(item_list::iterator in = item->input.begin();
         in != item->input.end();
         ++in) {
 
-        if(
-            find(candidates->begin(), candidates->end(), *in)
-                != candidates->end()
-        ) {
-            useless->push_back(*in);
-        } else {
-            exit.push_back(*in);
+        if(find(begin, end, *in) != end) {
+            insert_unique(useless, &exit, *in);
         }
+    }
+
+    return exit;
+}
+
+item_list brute_force(item_list *candidates, item_ptr &item) {
+    item_list exit;
+
+    if(
+        typeid(*item) == typeid(input_port) ||
+        typeid(*item) == typeid(output_port) ||
+        typeid(*item) == typeid(wire_item)
+    ) {
+        exit = item->input;
+    } else {
+        for_each(
+            item->input.begin(), item->input.end(),
+            bind(&insert_unique, candidates, &exit, _1)
+        );
     }
 
     return exit;
@@ -171,6 +185,7 @@ void analyze(item_map &out, value_map &obs,
     item_map diff;
     item_list candidates, useless;
 
+    // reduce candidates
     for(item_map::iterator item = out.begin();
         item != out.end();
         ++item) {
@@ -179,6 +194,7 @@ void analyze(item_map &out, value_map &obs,
             diff.insert(*item);
         }
     }
+    //diff = out; // brute-force
 
     // static
     for(item_map::iterator item = diff.begin();
@@ -186,22 +202,23 @@ void analyze(item_map &out, value_map &obs,
         ++item) {
 
         bft(
-            item->second->input.front(),
-            bind(&static_analyze, &candidates, _1)
+            item->second,
+            bind(&static_analyze, &candidates, _1) // reduce candidates
+            //bind(&brute_force, &candidates, _1) // brute-force
         );
     }
 
     // dynamic
-    for(item_list::iterator p = candidates.begin();
-        p != candidates.end();
-        ++p) {
+    for(item_list::iterator c = candidates.begin();
+        c != candidates.end();
+        ++c) {
 
-        if(find(useless.begin(), useless.end(), *p) != useless.end()) {
+        if(find(useless.begin(), useless.end(), *c) != useless.end()) {
             continue;
         }
-        actions.push_back(*p);
+        actions.push_back(*c);
 
-        item_ptr &item = *p;
+        item_ptr &item = *c;
         item_ptr parent = item;
 
         if(!item->input.empty()) {
@@ -216,7 +233,14 @@ void analyze(item_map &out, value_map &obs,
             ++o) {
 
             if(o->second->value != obs[o->first]) {
-                bft(item, bind(dynamic_analyze, &candidates, &useless, _1));
+                // reduce candidates
+                bft(
+                    item,
+                    bind(
+                        dynamic_analyze,
+                        c, candidates.end(), &useless, _1
+                    )
+                );
                 goto next_item;
             }
         }

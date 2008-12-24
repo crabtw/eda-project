@@ -13,7 +13,7 @@ typedef std::list<item_ptr> item_list;
 struct item {
     item(): value(-1) { }
 
-    virtual bool eval() = 0;
+    virtual void eval() = 0;
 
     std::string id;
     int value;
@@ -23,10 +23,10 @@ struct item {
 
 protected:
     template <class Function>
-    bool op(Function f) {
+    int op(Function f) {
         item_list::iterator iter = input.begin();
 
-        bool val = (*iter)->value;
+        int val = (*iter)->value;
         for(; iter != input.end(); ++iter) {
             val = f(val, (*iter)->value);
         }

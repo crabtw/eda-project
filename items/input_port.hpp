@@ -4,9 +4,7 @@
 #include "item.hpp"
 
 struct input_port : item {
-    bool eval() {
-        return value;
-    }
+    void eval();
 };
 
 #endif

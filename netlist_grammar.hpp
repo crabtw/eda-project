@@ -13,7 +13,6 @@
 
 #include <map>
 #include <string>
-#include <utility>
 
 namespace spirit = BOOST_SPIRIT_CLASSIC_NS;
 
@@ -27,7 +26,6 @@ enum gate_type {
     and_type, or_type, nand_type, nor_type,
     xor_type, not_type, buf_type
 };
-
 
 namespace {
     spirit::distinct_directive<> keyword_d("a-zA-Z0-9");
@@ -72,8 +70,7 @@ namespace {
         }
     }
 
-    void create_gate(gate_type *type, item_ptr *gate,
-                     item_map *items,
+    void create_gate(gate_type *type, item_ptr *gate, item_map *items,
                      const char *str, const char *end) {
         std::string s(str, end);
         item_ptr ptr;
@@ -131,8 +128,7 @@ namespace {
         ids->push_back(s);
     }
 
-    void clear_ids(std::list<std::string> *ids,
-                   char) {
+    void clear_ids(std::list<std::string> *ids, char) {
         ids->clear();
     }
 }
@@ -141,7 +137,6 @@ struct netlist_grammar : spirit::grammar<netlist_grammar> {
     template <typename ScannerT>
     struct definition {
         definition(netlist_grammar const& self) {
-            using namespace std;
             using namespace spirit;
 
             item_map &inputs = const_cast<item_map &>(self.inputs);

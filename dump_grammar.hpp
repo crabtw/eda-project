@@ -7,21 +7,17 @@
 
 #include <map>
 #include <string>
-#include <utility>
 
 namespace spirit = BOOST_SPIRIT_CLASSIC_NS;
 
 typedef std::map<std::string, int> value_map;
 
 namespace {
-   void set_id(std::string *id, 
-               const char *str, const char *end) {
+   void set_id(std::string *id, const char *str, const char *end) {
        std::string s(str, end);
        *id = s;
    }
-
-   void insert(std::string *id, value_map *values,
-               int val) {
+   void insert(std::string *id, value_map *values, int val) {
         values->insert(make_pair(*id, val));
    }
 }
@@ -31,7 +27,6 @@ struct dump_grammar : spirit::grammar<dump_grammar> {
     struct definition {
         definition(dump_grammar const& self) {
             using namespace spirit;
-            using namespace std;
 
             value_map &val = const_cast<value_map &>(self.values);
 
@@ -47,7 +42,7 @@ struct dump_grammar : spirit::grammar<dump_grammar> {
                             &set_id,
                             &cur_id,
                             _1, _2
-                        )
+                    )
                     ]
                     >> *ch_p(' ')
                     >> ch_p('=')

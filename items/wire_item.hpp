@@ -4,10 +4,7 @@
 #include "item.hpp"
 
 struct wire_item : item {
-    bool eval() {
-        value = input.front()->value;
-        return value;
-    }
+    void eval();
 };
 
 #endif

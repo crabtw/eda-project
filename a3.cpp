@@ -1,6 +1,8 @@
 #include "dump_grammar.hpp"
 #include "netlist_grammar.hpp"
 
+#include <boost/bind.hpp>
+
 #include <algorithm>
 #include <fstream>
 #include <iostream>

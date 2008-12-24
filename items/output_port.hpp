@@ -4,10 +4,7 @@
 #include "item.hpp"
 
 struct output_port : item {
-    bool eval() {
-        value = input.front()->value;
-        return value;
-    }
+    void eval();
 };
 
 #endif

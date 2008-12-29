@@ -11,12 +11,13 @@ typedef boost::shared_ptr<item> item_ptr;
 typedef std::list<item_ptr> item_list;
 
 struct item {
-    item(): value(-1) { }
+    item(): value(-1), visited(false) { }
 
     virtual void eval() = 0;
 
     std::string id;
     int value;
+    bool visited;
 
     item_list input;
     item_list output;

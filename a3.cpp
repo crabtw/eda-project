@@ -72,10 +72,9 @@ item_list eval(item_ptr &item) {
 
 void insert_unique(item_list *candidates, item_list *exit,
                    item_ptr &item) {
-    if(
-        find(candidates->begin(), candidates->end(), item)
-            == candidates->end()
-    ) {
+    if(!item->visited) {
+        item->visited = true;
+
         candidates->push_back(item);
         exit->push_back(item);
     }
@@ -144,18 +143,15 @@ item_list static_analyze(item_list *candidates, item_ptr &item) {
     return exit;
 }
 
-item_list dynamic_analyze(item_list *candidates, item_ptr &item) {
+item_list dynamic_analyze(item_list *candidates,
+                          item_list::iterator &begin, item_ptr &item) {
     item_list exit;
 
     for(item_list::iterator in = item->input.begin();
         in != item->input.end();
         ++in) {
 
-        if(
-            find(
-                candidates->begin(), candidates->end(), *in
-            ) != candidates->end()
-        ) {
+        if(find(begin, candidates->end(), *in) != candidates->end()) {
             candidates->remove(*in);
             exit.push_back(*in);
         }
@@ -200,18 +196,22 @@ void analyze(item_map &out, value_map &obs,
     //diff = out;
 
     // static
+    item_ptr out_set(new output_port);
+
     for(item_map::iterator item = diff.begin();
         item != diff.end();
         ++item) {
 
-        bft(
-            item->second,
-            // reduce candidates
-            bind(&static_analyze, &candidates, _1)
-            // brute-force
-            //bind(&brute_force, &candidates, _1)
-        );
+        out_set->input.push_back(item->second);
     }
+
+    bft(
+        out_set,
+        // reduce candidates
+        bind(&static_analyze, &candidates, _1)
+        // brute-force
+        //bind(&brute_force, &candidates, _1)
+    );
 
     // dynamic
     for(item_list::iterator c = candidates.begin();
@@ -234,7 +234,7 @@ void analyze(item_map &out, value_map &obs,
 
             if(o->second->value != obs[o->first]) {
                 // reduce candidates
-                bft(item, bind(dynamic_analyze, &candidates, _1));
+                bft(item, bind(dynamic_analyze, &candidates, c, _1));
                 goto next_item;
             }
         }

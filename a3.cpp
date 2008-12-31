@@ -133,8 +133,7 @@ item_list static_analyze(item_list *candidates, item_ptr &item) {
     return exit;
 }
 
-item_list dynamic_analyze(item_list *candidates,
-                          item_list::iterator &begin, item_ptr &item) {
+item_list dynamic_analyze(item_list *candidates, item_ptr &item) {
     if(typeid(*item) == typeid(input_port) ||
        typeid(*item) == typeid(output_port) ||
        typeid(*item) == typeid(wire_item)) {
@@ -143,7 +142,6 @@ item_list dynamic_analyze(item_list *candidates,
     }
 
     item_list exit;
-    ++begin;
 
     for(item_list::iterator in = item->input.begin();
         in != item->input.end();) {
@@ -247,7 +245,7 @@ void analyze(item_map &out, value_map &obs,
 
             if(o->second->value != obs[o->first]) {
                 // reduce candidates
-                bft(item, bind(dynamic_analyze, &candidates, c, _1));
+                bft(item, bind(dynamic_analyze, &candidates, _1));
                 goto next_item;
             }
         }

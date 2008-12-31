@@ -77,7 +77,7 @@ n4 和 O2 的 value 皆會改變，如果改變後的 output 與 testing 觀察�
 
 \section{Algorithms}
 
-　　以下是主要的演算法，詳細的 pseudo code 在最後一頁。
+　　以下是主要的演算法，詳細的的 pseudo code 在最後一頁。
 
 {\linespread{1}
 
@@ -108,24 +108,36 @@ n4 和 O2 的 value 皆會改變，如果改變後的 output 與 testing 觀察�
 所以將 simulation dump 中 output 部份與 observed value 取補集，%
 得到部份的 output node，以減少分析的數量。%
 
+\begin{center}
+\begin{minipage}{0.3\textwidth}
+\center
+simulation dump
+\hrule
+\begin{verbatim}
+O1 = 1
+O2 = 0
+O3 = 0
+\end{verbatim}
+\end{minipage}
+\begin{minipage}{0.3\textwidth}
+\center
+observed value
+\hrule
+\begin{verbatim}
+O1 = 0
+O2 = 1
+O3 = 0
+\end{verbatim}
+\end{minipage}
+\end{center}
+
+　　上面為範例，我們將兩者取補集，進而得到 O1、O2 兩 node。
+
 \subsection{$analysis$ line $4$}
 
 　　從 output 往 input 的方向執行 breadth-first traversal，%
 在 traverse 過程中對經過的元件進行 static analysis。%
 以下是 static analysis 的說明。
-
-　　由下表可知，當 and gate 的 output 為 $0$，只有 input 為 $0$ 的部份會影響結果，%
-又從題目可知一次只有一個 signal 會發生改變，當兩 input 為 $0$ ，%
-即使其中一個改變，output 依然不受影響。
-
-　　因為是從 output 往 input 進行 traverse，當我們知道某個 input 不會造成影響，%
-便可以停止對該元件繼續往 input 方向 traverse，即使後面的元件發生改變，%
-對目前的 output 也不會有影響。
-
-　　因此，當元件為 and gate，我們將其 input 為 $0$ 的元件放入 $candidates$ 裡面，%
-並且只對此元件繼續往下進行 travere，其他 input 則不予理會。
-
-　　至於 nand、or、nor 也是以相同的原理進行篩選。
 
 \begin{center}
 \begin{tabular}{|c|c|c|c|c|c|c|}
@@ -143,16 +155,47 @@ p & q & and & nand & or & nor & xor\\
 \end{tabular}
 \end{center}
 
+　　由上表可知，當 and gate 的 output 為 $0$，只有 input 為 $0$ 的部份會影響結果，%
+又從題目可知一次只有一個 signal 會發生改變，當兩 input 為 $0$ ，%
+即使其中一個改變，output 依然不受影響。
+
+　　因為是從 output 往 input 進行 traverse，當我們知道某個 input 不會造成影響，%
+便可以停止對該元件繼續往 input 方向 traverse，即使後面的元件發生改變，%
+對目前的 output 也不會有影響。
+
+　　因此，當元件為 and gate，我們將其 input 為 $0$ 的元件放入 $candidates$ 裡面，%
+並且只對此元件繼續往下進行 travere，其他 input 則不予理會。
+
+　　至於 nand、or、nor 也是以相同的原理進行篩選。
+
+\begin{center}
+\includegraphics[scale=0.6]{imgs/04.eps}
+\end{center}
+
+　　以上圖為例，從 output 開始進行 breadth-first traversal，%
+依序走訪 O1、O2，並將其 G4、G6 放到 $queue$。當走到 G4 時發現其 output value 為 $1$，%
+並且 n2 為 $1$、n1 為 $0$，我們可以確定 n1 不會造成影響，%
+所以僅把 n2 放入 $queue$ 以及 $candidates$，然後繼續走訪 G6 分析其 input node。
+
 \subsection{$analysis$ line $5..12$}
 
 　　對 $candidates$ 的元件依序進行 what-if analysis，判斷是否為 defective signal，%
 如果執行之後的結果與 observed value 一樣，便將此元件放入 $finals$；%
 如果不同，就對該元件從 output 往 input 的方向執行 breadth-first traversal，%
-在 traverse 過程中對經過的元件進行 dynamic analysis。以下是 dynamic analysis 的說明。
+在 traverse 過程中對經過的元件進行 dynamic analysis。
 
-　　如果已知元件不是 defective signal，則刪除僅與此元件連接的 input node。%
-因為只有與目前的元件連線，所以可以確定刪除之後不會對後面的 $candidates$ 造成影響。
-之後並對該 input node 往下 traverse，繼續進行分析。
+　　我們所作的 dynamic analysis 是，如果已知元件不是 defective signal，%
+便從 $candidates$ 刪除僅與此元件連接的 input node。%
+因為只有與目前的元件連線，所以可以確定刪除之後不會對尚未作 what-if 的元件造成影響。%
+刪除後並往 input node 的方向 traverse，繼續進行 dynamic analysis。
+
+\begin{center}
+\includegraphics[scale=0.6]{imgs/04.eps}
+\end{center}
+
+　　以上圖為例，假設對 n1 進行 what-if analysis，發現不是 defective signal，%
+便從 n1 開始執行 breadth-first traversal。走到 G1 時發現 I1 存在於 $candidates$ %
+並只有與 G1 連接，我們便把它從 $candidates$ 刪除，並把它放入 $queue$ 繼續往下走訪。
 
 \section{Implementation}
 
@@ -172,7 +215,7 @@ struct item {
 \end{verbatim}
 
 $value$ 是 simulation dump value，$input$ 是元件的 input node，%
-$output$ 元件的 output node。
+$output$ 是元件的 output node。
 
 　　至於 sim.dump 與 obs.dump 則是以 map 對應元件 id 至各個數值。
 

@@ -90,16 +90,6 @@ item_list static_analyze(item_list *candidates, item_ptr &item) {
     }
 
     item_list exit;
-
-    // not, buf
-    if(
-        typeid(*item) == typeid(not_gate) ||
-        typeid(*item) == typeid(buf_gate)
-    ) {
-        insert_unique(candidates, &exit, item->input.front());
-        return exit;
-    }
-
     item_list tmp;
 
     // and=0, nand=1, or=1, nor=0, others
@@ -145,16 +135,38 @@ item_list static_analyze(item_list *candidates, item_ptr &item) {
 
 item_list dynamic_analyze(item_list *candidates,
                           item_list::iterator &begin, item_ptr &item) {
+    if(typeid(*item) == typeid(input_port) ||
+       typeid(*item) == typeid(output_port) ||
+       typeid(*item) == typeid(wire_item)) {
+
+        return item->input;
+    }
+
     item_list exit;
+    ++begin;
 
     for(item_list::iterator in = item->input.begin();
-        in != item->input.end();
-        ++in) {
+        in != item->input.end();) {
 
-        if(find(begin, candidates->end(), *in) != candidates->end()) {
-            candidates->remove(*in);
-            exit.push_back(*in);
+        if(!(*in)->visited) {
+            goto next_input;
         }
+
+        for(item_list::iterator out = (*in)->output.begin();
+            out != (*in)->output.end();
+            ++out) {
+
+            if((*out)->visited) {
+                goto next_input;
+            }
+        }
+
+        (*in)->visited = false;
+        candidates->remove(*in);
+        exit.push_back(*in);
+
+next_input:
+        ++in;
     }
 
     return exit;
@@ -226,6 +238,7 @@ void analyze(item_map &out, value_map &obs,
         }
 
         parent->value = !parent->value;
+        item->visited = false;
         bft(item, eval);
 
         for(item_map::iterator o = out.begin();

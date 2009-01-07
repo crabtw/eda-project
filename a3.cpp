@@ -191,7 +191,7 @@ item_list brute_force(item_list *candidates, item_ptr &item) {
 
 void analyze(item_map &out, value_map &obs,
              item_list &candidates, item_list &final) {
-    item_map diff;
+    item_list diff;
 
     // reduce candidates
     for(item_map::iterator item = out.begin();
@@ -199,21 +199,13 @@ void analyze(item_map &out, value_map &obs,
         ++item) {
 
         if(item->second->value != obs[item->first]) {
-            diff.insert(*item);
+            diff.push_back(item->second);
         }
     }
-    // brute-force
-    //diff = out;
 
     // static
     item_ptr out_set(new output_port);
-
-    for(item_map::iterator item = diff.begin();
-        item != diff.end();
-        ++item) {
-
-        out_set->input.push_back(item->second);
-    }
+    out_set->input = diff;
 
     bft(
         out_set,

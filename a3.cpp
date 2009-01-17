@@ -322,7 +322,7 @@ int main(int argc, char **argv) {
     string netlist, sim_dump, obs_dump;
     string out_path;
 
-    // load files;
+    // load files
     for(int i = 1; i < argc; i+= 2) {
         if(strcmp(argv[i], "-netlist") == 0) {
             netlist = load_file(argv[i+1]);

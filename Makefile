@@ -13,7 +13,7 @@ CXX           = g++
 DEFINES       = 
 CFLAGS        = -pipe -O2 $(DEFINES)
 CXXFLAGS      = -pipe -O2 $(DEFINES)
-INCPATH       = -I/usr/share/qt4/mkspecs/linux-g++ -I. -I. -Iitems
+INCPATH       = -I/usr/include -I. -I. -Iitems
 LINK          = g++
 LFLAGS        = 
 LIBS          = $(SUBLIBS)   
@@ -64,17 +64,6 @@ OBJECTS       = a3.o \
 		output_port.o \
 		wire_item.o \
 		xor_gate.o
-DIST          = /usr/share/qt4/mkspecs/common/g++.conf \
-		/usr/share/qt4/mkspecs/common/unix.conf \
-		/usr/share/qt4/mkspecs/common/linux.conf \
-		/usr/share/qt4/mkspecs/qconfig.pri \
-		/usr/share/qt4/mkspecs/features/qt_functions.prf \
-		/usr/share/qt4/mkspecs/features/qt_config.prf \
-		/usr/share/qt4/mkspecs/features/exclusive_builds.prf \
-		/usr/share/qt4/mkspecs/features/default_pre.prf \
-		/usr/share/qt4/mkspecs/features/release.prf \
-		/usr/share/qt4/mkspecs/features/default_post.prf \
-		eda-project.pro
 QMAKE_TARGET  = identifyFC
 DESTDIR       = 
 TARGET        = identifyFC
@@ -101,38 +90,10 @@ first: all
 
 ####### Build rules
 
-all: Makefile $(TARGET)
+all: $(TARGET)
 
 $(TARGET):  $(OBJECTS)  
 	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(OBJCOMP) $(LIBS)
-
-Makefile: eda-project.pro  /usr/share/qt4/mkspecs/linux-g++/qmake.conf /usr/share/qt4/mkspecs/common/g++.conf \
-		/usr/share/qt4/mkspecs/common/unix.conf \
-		/usr/share/qt4/mkspecs/common/linux.conf \
-		/usr/share/qt4/mkspecs/qconfig.pri \
-		/usr/share/qt4/mkspecs/features/qt_functions.prf \
-		/usr/share/qt4/mkspecs/features/qt_config.prf \
-		/usr/share/qt4/mkspecs/features/exclusive_builds.prf \
-		/usr/share/qt4/mkspecs/features/default_pre.prf \
-		/usr/share/qt4/mkspecs/features/release.prf \
-		/usr/share/qt4/mkspecs/features/default_post.prf
-	$(QMAKE) -unix -o Makefile eda-project.pro
-/usr/share/qt4/mkspecs/common/g++.conf:
-/usr/share/qt4/mkspecs/common/unix.conf:
-/usr/share/qt4/mkspecs/common/linux.conf:
-/usr/share/qt4/mkspecs/qconfig.pri:
-/usr/share/qt4/mkspecs/features/qt_functions.prf:
-/usr/share/qt4/mkspecs/features/qt_config.prf:
-/usr/share/qt4/mkspecs/features/exclusive_builds.prf:
-/usr/share/qt4/mkspecs/features/default_pre.prf:
-/usr/share/qt4/mkspecs/features/release.prf:
-/usr/share/qt4/mkspecs/features/default_post.prf:
-qmake:  FORCE
-	@$(QMAKE) -unix -o Makefile eda-project.pro
-
-dist: 
-	@$(CHK_DIR_EXISTS) .tmp/identifyFC1.0.0 || $(MKDIR) .tmp/identifyFC1.0.0 
-	$(COPY_FILE) --parents $(SOURCES) $(DIST) .tmp/identifyFC1.0.0/ && (cd `dirname .tmp/identifyFC1.0.0` && $(TAR) identifyFC1.0.0.tar identifyFC1.0.0 && $(COMPRESS) identifyFC1.0.0.tar) && $(MOVE) `dirname .tmp/identifyFC1.0.0`/identifyFC1.0.0.tar.gz . && $(DEL_FILE) -r .tmp/identifyFC1.0.0
 
 
 clean:compiler_clean 
@@ -148,7 +109,9 @@ distclean: clean
 
 
 test:
-	./identifyFC -netlist test.a3/design.v -sim_dump test.a3/sim.dump -obs_dump test.a3/obs.dump -out test.a3/FC.rpt; ./identifyFC -netlist test.a3/test01/design.v -sim_dump test.a3/test01/sim.dump -obs_dump test.a3/test01/obs.dump -out test.a3/test01/FC.rpt; ./identifyFC -netlist test.a3/test02/design.v -sim_dump test.a3/test02/sim.dump -obs_dump test.a3/test02/obs.dump -out test.a3/test02/FC.rpt;
+	./identifyFC -netlist test.a3/design.v -sim_dump test.a3/sim.dump -obs_dump test.a3/obs.dump -out test.a3/FC.rpt
+	./identifyFC -netlist test.a3/test01/design.v -sim_dump test.a3/test01/sim.dump -obs_dump test.a3/test01/obs.dump -out test.a3/test01/FC.rpt
+	./identifyFC -netlist test.a3/test02/design.v -sim_dump test.a3/test02/sim.dump -obs_dump test.a3/test02/obs.dump -out test.a3/test02/FC.rpt
 
 compiler_clean: 
 

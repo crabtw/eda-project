@@ -9,14 +9,13 @@
 \parindent = 0pt
 \linespread{1.5}
 
-% XeTeX
-\usepackage[cm-default]{fontspec}
-\usepackage{xunicode, xltxtra}
-\setmainfont{AR PL New Kai}
-\XeTeXlinebreaklocale "zh"
-\XeTeXlinebreakskip = 0pt plus 1pt
+% xCJK
+\usepackage[boldfont]{xCJK}
+\setCJKmainfont{AR PL New Kai}
 \begin{document}
+\begin{CJK*}{UTF8}{song}
 
+\CJKspace
 \input{title.tex}
 
 \section{Abstract}
@@ -30,8 +29,8 @@ silicon 所要作的測試。
 \end{center}
 
 　　當我們拿到 test pattern 後，我們會做兩種測試，分別為 simulation %
-和 testing ，如果兩種測試出來的結果相同，則就是 match，不同的話則是%
-mismatch，而我們所做的程式，則是在得到 mismatch 後，對於 silicon %
+和 testing，如果兩種測試出來的結果相同，則就是 match，不同的話則是%
+ mismatch，而我們所做的程式，則是在得到 mismatch 後，對於 silicon %
 prototype 做 debug，找出裡面有可能的 defective signal。
 
 \section{Introduction}
@@ -48,7 +47,7 @@ prototype 做 debug，找出裡面有可能的 defective signal。
 
 我們要做 debug，找出所有可能的 defective signal。
 
-　　為了能找出 mismatch behavior，我們使用 what–if 這個方法，%
+　　為了能找出 mismatch behavior，我們使用 what-if 這個方法，%
 藉由改變目前的 value，我們可以快速的找出問題所在，在這裡，我們只討論%
 一次改變一個 signal。以下圖的 n2 為例，我們將 n2 的 1 改變為 0，則 O1、%
 n4 和 O2 的 value 皆會改變，如果改變後的 output 與 testing 觀察所得到%
@@ -60,18 +59,18 @@ n4 和 O2 的 value 皆會改變，如果改變後的 output 與 testing 觀察�
 
 　　因此，我們需要一個程式，能夠將所有可能的 defective signal 給%
 找出來，並且利用一些演算法，找出有可能是 defective signal 的 signal，%
-再對這些 signal 做 what–if 分析，如此一來，可以減少很多不必要%
-的 what–if 分析，以達到 debug 最大的效率。
+再對這些 signal 做 what-if 分析，如此一來，可以減少很多不必要%
+的 what-if 分析，以達到 debug 最大的效率。
 
 \subsection{Functions and Features}
 
 　　本軟體依照上述的需求，完成所應該要做的分析，並且利用%
 兩個演算法，減少不必要的 what-if 分析，在最短的時間內%
-把有作 what–if 的 signal 和最後有可能的 defective signal 給列出來。%
+把有作 what-if 的 signal 和最後有可能的 defective signal 給列出來。%
 
 \subsection{Contributions and Results}
 
-　　為了減少不必要的 what–if 分析，我們依照題目的提示%
+　　為了減少不必要的 what-if analysis，我們依照題目的提示%
 設計了兩個演算法，分別為 Static approach 和 Dynamic approach，%
 利用這兩種演算法，我們便可以提升程式的效率。
 
@@ -219,6 +218,12 @@ $output$ 是元件的 output node。
 
 　　至於 sim.dump 與 obs.dump 則是以 map 對應元件 id 至各個數值。
 
+\begin{verbatim}
+map["I1"] == 1;
+map["n1"] == 0;
+map["O1"] == 0;
+\end{verbatim}
+
 \subsection{Flow}
 
 \begin{center}
@@ -279,17 +284,33 @@ W3
 
 \subsection{CPU Time and Memory Usage}
 
-　　因測試資料數量都不大，測試出來的 CPU time 與 memory usage 皆為 $0$
+\begin{tabular}{|l|l|l|}
+  \hline
+               & Case 1 & Case 2\\
+  \hline
+  components   & 17     & 31\\
+  \hline
+  time    & 0 sec  & 0 sec\\
+  \hline
+  memory  & 0 KB   & 0 KB\\
+  \hline
+\end{tabular}
+
+　　為取得程式資源的使用量，我們使用 GNU time 進行量測，但因測試資料數量不大，%
+測量出來的 CPU time 與 memory usage 分別為 $0$ sec 及 $0$ KB
 
 \section{Appendix}
 
 \subsection{User Manual}
 
 \begin{enumerate}
-\item 解壓縮：\\tar zxvf eda-project.tar.gz
-\item 進入目錄：\\cd eda-project
-\item 編譯：\\make
-\item 執行：\\./identifyFC -netlist design.v -sim\_dump sim.dump -obs\_dump obs.dump -out FC.rpt
+\item 　解壓縮：tar zxvf eda-project.tar.gz
+\item 進入目錄：cd eda-project
+\item 　　編譯：make
+\item 　　執行：./identifyFC -netlist design.v\\
+　　　　　　　　　　 -sim\_dump sim.dump\\
+　　　　　　　　　　 -obs\_dump obs.dump\\
+　　　　　　　　　　 -out FC.rpt
 \end{enumerate}
 
 \subsection{Pseudo code}
@@ -356,4 +377,5 @@ W3
 
 }
 
+\end{CJK*}
 \end{document}

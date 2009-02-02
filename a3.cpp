@@ -144,27 +144,16 @@ item_list dynamic_analyze(item_list *candidates, item_ptr &item) {
     item_list exit;
 
     for(item_list::iterator in = item->input.begin();
-        in != item->input.end();) {
+        in != item->input.end();
+        ++in) {
 
-        if(!(*in)->visited) {
-            goto next_input;
-        }
-
-        for(item_list::iterator out = (*in)->output.begin();
-            out != (*in)->output.end();
-            ++out) {
-
-            if((*out)->visited) {
-                goto next_input;
-            }
+        if(!(*in)->visited || (*in)->output.size() > 1) {
+            continue;
         }
 
         (*in)->visited = false;
         candidates->remove(*in);
         exit.push_back(*in);
-
-next_input:
-        ++in;
     }
 
     return exit;
@@ -297,7 +286,7 @@ void save_file(const string &path, item_list &candidates, item_list &final) {
         exit(-1);
     }
 
-    out << "Number of performing the ‘what-if’ analysis: "
+    out << "Number of performing the 'what-if' analysis: "
         << candidates.size() << endl;
     for(item_list::iterator item = candidates.begin();
         item != candidates.end();

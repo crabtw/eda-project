@@ -22,7 +22,9 @@ defineReplace(inputFiles) {
 
 testDirs = test.a3 \
            test.a3/test01 \
-           test.a3/test02
+           test.a3/test02 \
+           test.a3/test03 \
+           test.a3/test04
 
 for(dir, testDirs) {
     cmd += ./$$TARGET $$inputFiles($$dir);
